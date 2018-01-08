@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 setup(
         name             = "keras-learn",
         version          = "0.0.1",
-        description      = "",
+        description      = "Extension module of keras.wrappers.scikit_learn to flexible model definition and easy handling.",
         license          = "BSD-2-Clause",
         author           = "gen/5",
         author_email     = "gen_fifth@outlook.jp",
