@@ -5,6 +5,7 @@ def run_tb(logdir, port=6006):
     Run tensorboard on python env.
 
     # Arguments
+    
     logdir: str
         Tensorboard's log dir.
     port: int

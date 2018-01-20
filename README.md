@@ -14,3 +14,6 @@ $ pip install git+https://github.com/genfifth/keras-learn
 
 # Quick start
 [notebook](https://github.com/genfifth/keras-learn/blob/master/notebooks/quickstart.ipynb) 
+
+# Documents
+[API reference](https://genfifth.github.io/keras-learn/)
