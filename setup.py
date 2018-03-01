@@ -13,7 +13,8 @@ setup(
         packages         = find_packages(),
         install_requires = ["Keras>=2.1.1", 
                             "pydot-ng>=1.0.0", 
-                            "tensorflow", 
+                            #"tensorflow>=1.4.1",
+                            #"tensorflow-gpu>=1.4.1", 
                             "ipython>=6.1.0"
                             "ipwidgets>=7.0.0"],
         )
