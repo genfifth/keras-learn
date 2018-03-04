@@ -11,9 +11,10 @@ setup(
         author_email     = "gen_fifth@outlook.jp",
         url              = "https://github.com/genfifth/keras-learn.git",
         packages         = find_packages(),
-        install_requires = ["Keras>=2.1.2", 
+        install_requires = ["Keras>=2.1.1", 
                             "pydot-ng>=1.0.0", 
-                            "tensorflow>=1.4.1", 
+                            #"tensorflow>=1.4.1",
+                            #"tensorflow-gpu>=1.4.1", 
                             "ipython>=6.1.0"
                             "ipwidgets>=7.0.0"],
         )
