@@ -1,0 +1,1270 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>kslearn.wrappers._base &mdash; keras-learn  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="keras-learn  documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> keras-learn
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/kslearn.utils.html">kslearn.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/kslearn.wrappers.html">kslearn.wrappers</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">keras-learn</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>kslearn.wrappers._base</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for kslearn.wrappers._base</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">types</span><span class="o">,</span> <span class="nn">random</span><span class="o">,</span> <span class="nn">copy</span><span class="o">,</span> <span class="nn">warnings</span><span class="o">,</span> <span class="nn">datetime</span><span class="o">,</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span><span class="o">,</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">keras.models</span> <span class="k">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Sequential</span>
+<span class="kn">from</span> <span class="nn">keras.wrappers.scikit_learn</span> <span class="k">import</span> <span class="n">BaseWrapper</span>
+<span class="kn">from</span> <span class="nn">keras.utils.np_utils</span> <span class="k">import</span> <span class="n">to_categorical</span> 
+<span class="kn">from</span> <span class="nn">keras.utils.generic_utils</span> <span class="k">import</span> <span class="n">has_arg</span>
+<span class="kn">from</span> <span class="nn">keras.utils.vis_utils</span> <span class="k">import</span> <span class="n">plot_model</span>
+<span class="kn">from</span> <span class="nn">keras.callbacks</span> <span class="k">import</span> <span class="n">ModelCheckpoint</span><span class="p">,</span> <span class="n">EarlyStopping</span><span class="p">,</span> <span class="n">TensorBoard</span>
+<span class="kn">from</span> <span class="nn">keras.backend</span> <span class="k">import</span> <span class="n">tensorflow_backend</span> <span class="k">as</span> <span class="n">KTF</span>
+<span class="kn">from</span> <span class="nn">keras</span> <span class="k">import</span> <span class="n">backend</span> <span class="k">as</span> <span class="n">K</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_is_fitted</span>
+<span class="kn">from</span> <span class="nn">..utils._vis</span> <span class="k">import</span> <span class="n">display_log</span>
+
+<span class="k">class</span> <span class="nc">BaseModel</span><span class="p">(</span><span class="n">BaseWrapper</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class of wrappers.</span>
+
+<span class="sd">    Argments</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    build_fn: callable function or class instance.</span>
+<span class="sd">        The `build_fn` should construct, compile and return a Keras model, which</span>
+<span class="sd">        will then be used to fit/predict. One of the following</span>
+<span class="sd">        three values could be passed to `build_fn`:</span>
+<span class="sd">        </span>
+<span class="sd">        1. A function</span>
+<span class="sd">        </span>
+<span class="sd">        2. An instance of a class that implements the `__call__` method</span>
+<span class="sd">        </span>
+<span class="sd">        3. None. This means you implement a class that inherits from either</span>
+<span class="sd">        `KerasClassifier` or `KerasRegressor`. The `__call__` method of the</span>
+<span class="sd">        present class will then be treated as the default `build_fn`.</span>
+
+<span class="sd">    model_id: str or None, default=None.</span>
+<span class="sd">        This is used to log filename.</span>
+<span class="sd">        </span>
+<span class="sd">        When model_id is None, this is generated by date time.</span>
+
+<span class="sd">    logroot_dir: str or None, default=None.</span>
+<span class="sd">        Log root dir. this model&#39;s logfile is saved under &quot;`logroot_dir`/`model_id`/&quot;.</span>
+<span class="sd">        </span>
+<span class="sd">        When logroot_dir is None, a logfile is not saved.</span>
+
+<span class="sd">    tb_display_url: str or None, default=None.</span>
+<span class="sd">        Tensorboard&#39;s url. When run `fit`, tensorboard and keras model plot is displayed on jupyter.</span>
+<span class="sd">        </span>
+<span class="sd">        When tb_display_url is None, this is not displayed. </span>
+
+<span class="sd">    period: int or None, default=None.</span>
+<span class="sd">        Interval (number of epochs) between checkpoints for save the model (keras.callbacks.ModelCheckpoint&#39;s arg) .</span>
+<span class="sd">        </span>
+<span class="sd">        When period is None, unless proper &#39;callback&#39; argument is given at the time of running &#39;fit&#39;, this model is not saved.</span>
+
+<span class="sd">    patience: int or None, default=None.</span>
+<span class="sd">        Number of epochs with no improvement after which training will be stopped (keras.callbacks.EarlyStopping&#39;s arg).</span>
+<span class="sd">        </span>
+<span class="sd">        When patience is None, unless proper &#39;callback&#39; argument is given at the time of running &#39;fit&#39;, earlystopping is not used. </span>
+
+<span class="sd">    random_state: int or None, default=None.</span>
+<span class="sd">        The seed used by the random number generator.</span>
+<span class="sd">        </span>
+<span class="sd">        (this seed is used in tensorflow, numpy and python random.)</span>
+
+<span class="sd">    reuse: bool, default=True.</span>
+<span class="sd">        When reuse is True, tensorflow session is not initialized per running `fit`.</span>
+
+<span class="sd">    **sk_params: dictonary.</span>
+<span class="sd">        model parameters &amp; fitting parameters.</span>
+<span class="sd">        </span>
+<span class="sd">        `sk_params` takes both model parameters and fitting parameters. </span>
+<span class="sd">        </span>
+<span class="sd">        Legal modelparameters are the arguments of `build_fn`. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">model_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logroot_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tb_display_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">period</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">patience</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">reuse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">sk_params</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">build_fn</span><span class="o">=</span><span class="n">build_fn</span><span class="p">,</span> <span class="o">**</span><span class="n">sk_params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_id</span> <span class="o">=</span> <span class="n">model_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logroot_dir</span> <span class="o">=</span> <span class="n">logroot_dir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tb_display_url</span> <span class="o">=</span> <span class="n">tb_display_url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">random_state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reuse</span> <span class="o">=</span> <span class="n">reuse</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cb_params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;period&quot;</span><span class="p">:</span><span class="n">period</span><span class="p">,</span> <span class="s2">&quot;patience&quot;</span><span class="p">:</span><span class="n">patience</span><span class="p">}</span>
+        
+    <span class="c1"># Utils</span>
+    <span class="k">def</span> <span class="nf">check_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks for user typos in &quot;params&quot;.</span>
+<span class="sd">        </span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        params: dictionary.</span>
+<span class="sd">           the parameters to be checked.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        ValueError: if any member of `params` is not a valid argument.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">legal_params_fns</span> <span class="o">=</span> <span class="p">[</span><span class="n">Sequential</span><span class="o">.</span><span class="n">fit</span><span class="p">,</span> <span class="n">Sequential</span><span class="o">.</span><span class="n">predict</span><span class="p">,</span>
+                            <span class="n">Sequential</span><span class="o">.</span><span class="n">predict_classes</span><span class="p">,</span> <span class="n">Sequential</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> 
+                            <span class="n">Sequential</span><span class="o">.</span><span class="n">fit_generator</span><span class="p">,</span> <span class="n">Sequential</span><span class="o">.</span><span class="n">predict_generator</span><span class="p">,</span> <span class="n">Sequential</span><span class="o">.</span><span class="n">evaluate_generator</span><span class="p">,</span> 
+                            <span class="n">Model</span><span class="o">.</span><span class="n">fit</span><span class="p">,</span> <span class="n">Model</span><span class="o">.</span><span class="n">predict</span><span class="p">,</span> 
+                            <span class="n">Model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> 
+                            <span class="n">Model</span><span class="o">.</span><span class="n">fit_generator</span><span class="p">,</span> <span class="n">Model</span><span class="o">.</span><span class="n">predict_generator</span><span class="p">,</span> <span class="n">Model</span><span class="o">.</span><span class="n">evaluate_generator</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">legal_params_fns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="fm">__call__</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_fn</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">)</span> <span class="ow">and</span>
+              <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_fn</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">)):</span>
+            <span class="n">legal_params_fns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_fn</span><span class="o">.</span><span class="fm">__call__</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">legal_params_fns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_fn</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">params_name</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">legal_params_fns</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">has_arg</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">params_name</span><span class="p">):</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">params_name</span> <span class="o">!=</span> <span class="s1">&#39;nb_epoch&#39;</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> is not a legal parameter&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">params_name</span><span class="p">))</span>
+                    
+    <span class="k">def</span> <span class="nf">_check_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">legal_params_fns</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks for user typos in &quot;params&quot; for common functions.</span>
+<span class="sd">        </span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+<span class="sd">        </span>
+<span class="sd">        params: dictionary.</span>
+<span class="sd">            the parameters to be checked.</span>
+
+<span class="sd">        legal_params_fns: list of functions.</span>
+<span class="sd">            the functions to be checked</span>
+<span class="sd">            </span>
+<span class="sd">        Raises</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        ValueError: if any member of `params` is not a valid argument.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">params_name</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">legal_params_fns</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">has_arg</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">params_name</span><span class="p">):</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> is not a legal parameter&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">params_name</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">set_session_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set tensorfow session config.</span>
+<span class="sd">        </span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        config:</span>
+<span class="sd">            config for tensorflow session.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session_config</span> <span class="o">=</span> <span class="n">config</span>
+    
+    <span class="k">def</span> <span class="nf">_filter_n_set_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Filter `params` and return fn(args).</span>
+<span class="sd">        </span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        fn: function</span>
+<span class="sd">            function to retrun.</span>
+
+<span class="sd">        **params: dictonary.</span>
+<span class="sd">            Dictionary of parameter names mapped to their values.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        fn(expected args)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">params_name</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">has_arg</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">params_name</span><span class="p">):</span>
+                <span class="n">args</span><span class="p">[</span><span class="n">params_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="n">params_name</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">fn</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="c1"># Env setting</span>
+    <span class="k">def</span> <span class="nf">_set_log</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set valiables about log.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model_id</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">_%H%M%S&quot;</span><span class="p">)</span>
+
+        <span class="n">log_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logroot_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">log_dir</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mo">0o777</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mo">0o777</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cb_params</span><span class="p">[</span><span class="s2">&quot;log_dir&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">log_dir</span>
+        
+    <span class="k">def</span> <span class="nf">_mk_cbks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set keras callback classes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cbks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cb_params</span><span class="p">[</span><span class="s2">&quot;patience&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cbks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filter_n_set_params</span><span class="p">(</span><span class="n">EarlyStopping</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_cb_params</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="s2">&quot;log_dir&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cb_params</span><span class="p">:</span>
+            <span class="n">plot_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">to_file</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cb_params</span><span class="p">[</span><span class="s2">&quot;log_dir&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_id</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;.png&quot;</span><span class="p">),</span> <span class="n">show_layer_names</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_shapes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">cbks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filter_n_set_params</span><span class="p">(</span><span class="n">TensorBoard</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_cb_params</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cb_params</span><span class="p">[</span><span class="s2">&quot;period&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;filepath&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cb_params</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_cb_params</span><span class="p">[</span><span class="s2">&quot;filepath&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cb_params</span><span class="p">[</span><span class="s2">&quot;log_dir&quot;</span><span class="p">],</span> <span class="s2">&quot;model.epoch</span><span class="si">{epoch:04d}</span><span class="s2">.h5&quot;</span><span class="p">)</span>
+                <span class="n">cbks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filter_n_set_params</span><span class="p">(</span><span class="n">ModelCheckpoint</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_cb_params</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">cbks</span>
+        
+    <span class="k">def</span> <span class="nf">_init_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">random_state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Clear tensorflow session and set &quot;global&quot; session.</span>
+<span class="sd">        </span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        random_state:</span>
+<span class="sd">            The seed used by the random number generator.</span>
+<span class="sd">            </span>
+<span class="sd">            (this seed is used in tensorflow, numpy and python random.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">KTF</span><span class="o">.</span><span class="n">clear_session</span><span class="p">()</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">set_random_seed</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+        <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;session_config&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session_config</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">KTF</span><span class="o">.</span><span class="n">set_session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
+                    
+    <span class="c1"># Modeling</span>
+    <span class="k">def</span> <span class="nf">_build_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build model and set env.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;session&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_init_session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">filter_sk_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="fm">__call__</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_fn</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">)</span> <span class="ow">and</span>
+              <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_fn</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_fn</span><span class="p">(</span>
+                <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">filter_sk_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_fn</span><span class="o">.</span><span class="fm">__call__</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_fn</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">filter_sk_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build_fn</span><span class="p">))</span>
+            
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logroot_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;log_dir&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cb_params</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_set_log</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">_ck_callbacks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">validation_data</span><span class="p">,</span> <span class="n">callbacks</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check callbacks.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        validation_data: tuple of array-like `(x, y)` or None.</span>
+<span class="sd">            Data for validation.</span>
+<span class="sd">            </span>
+<span class="sd">            When validation_data is None, monitor(keras.callbacks.ModelCheckpoint&#39;s valiable) is &quot;loss&quot;.</span>
+<span class="sd">            </span>
+<span class="sd">            Otherwise, monitor is &quot;val_loss&quot;.</span>
+<span class="sd">        </span>
+<span class="sd">        callbacks: list of keras callback classes or None.</span>
+<span class="sd">            When callbacks is None, set proper this model&#39;s callbacks.</span>
+<span class="sd">            </span>
+<span class="sd">            Otherwise, set this arg as this model&#39;s callbacks.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;callbacks&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">callbacks</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;This instance already is set callbacks. So input callbacks is ignored.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">callbacks</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;monitor&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cb_params</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">validation_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_cb_params</span><span class="p">[</span><span class="s2">&quot;monitor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;loss&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_cb_params</span><span class="p">[</span><span class="s2">&quot;monitor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;val_loss&quot;</span>    
+                <span class="n">callbacks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mk_cbks</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span> <span class="o">=</span> <span class="n">callbacks</span>
+            
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">validation_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructs a new model with `build_fn` &amp; fit the model to `(x, y)`.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        x : array-like, shape `(n_samples, n_features)`</span>
+<span class="sd">            Training samples where n_samples in the number of samples</span>
+<span class="sd">            and n_features is the number of features.</span>
+
+<span class="sd">        y : array-like, shape `(n_samples,)` or `(n_samples, n_outputs)`</span>
+<span class="sd">            True values for X.</span>
+
+<span class="sd">        validation_data: tuple of array-like `(x, y)` or None.</span>
+<span class="sd">            Data for validation.</span>
+<span class="sd">            </span>
+<span class="sd">            When validation_data is None, skip validation.</span>
+
+<span class="sd">        callbacks: list of keras callback classes or None.</span>
+<span class="sd">            When callbacks is None, set proper this model&#39;s callbacks.</span>
+<span class="sd">            </span>
+<span class="sd">            Otherwise, set this arg as this model&#39;s callbacks.</span>
+<span class="sd">            </span>
+<span class="sd">        **kwargs: dictionary.</span>
+<span class="sd">            Legal arguments are the arguments of `fit (builded model method)`.</span>
+<span class="sd">                </span>
+<span class="sd">        # Returns</span>
+<span class="sd">        </span>
+<span class="sd">        history : object</span>
+<span class="sd">            details about the training history at each epoch.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">reuse</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_build_model</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ck_callbacks</span><span class="p">(</span><span class="n">validation_data</span><span class="o">=</span><span class="n">validation_data</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="n">callbacks</span><span class="p">)</span>
+        
+        <span class="n">fit_args</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filter_sk_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">))</span>
+        <span class="n">fit_args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tb_display_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">display_log</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logroot_dir</span><span class="p">,</span> <span class="n">tb_display_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tb_display_url</span><span class="p">,</span> <span class="n">cr_model_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;verbose&quot;</span> <span class="ow">in</span> <span class="n">fit_args</span><span class="p">:</span>
+                <span class="n">fit_args</span><span class="p">[</span><span class="s2">&quot;verbose&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                
+        <span class="n">history</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">validation_data</span><span class="o">=</span><span class="n">validation_data</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">,</span> <span class="o">**</span><span class="n">fit_args</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">history</span>
+    
+    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retern model&#39;s loss.</span>
+<span class="sd">        </span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        x : array-like, shape `(n_samples, n_features)`</span>
+<span class="sd">            Training samples where n_samples in the number of samples</span>
+<span class="sd">            and n_features is the number of features.</span>
+
+<span class="sd">        y : array-like, shape `(n_samples,)` or `(n_samples, n_outputs)`</span>
+<span class="sd">            True values for X.</span>
+
+<span class="sd">        **kwargs: dictionary.</span>
+<span class="sd">            Legal arguments are the arguments of `evaluate (builded model method)`.</span>
+
+<span class="sd">        # Returns</span>
+<span class="sd">        </span>
+<span class="sd">        loss</span>
+<span class="sd">            model&#39;s loss</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_sk_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">fit_generator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">generator</span><span class="p">,</span> <span class="n">steps_per_epoch</span><span class="p">,</span> <span class="n">validation_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructs a new model with `build_fn` &amp; fit the model to genarator&#39;s output `(x, y)`.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        generator: generator</span>
+<span class="sd">            The output of the generator must be either</span>
+<span class="sd">            </span>
+<span class="sd">            - a tuple (inputs, targets)</span>
+<span class="sd">            </span>
+<span class="sd">            - a tuple (inputs, targets, sample_weights).</span>
+
+<span class="sd">        steps_per_epoch: int.</span>
+<span class="sd">            Total number of steps (batches of samples).</span>
+
+<span class="sd">        validation_data: tuple of array-like `(x, y)` or None.</span>
+<span class="sd">            validation_data: This can be either</span>
+<span class="sd">            </span>
+<span class="sd">            - A generator for the validation data</span>
+<span class="sd">            </span>
+<span class="sd">            - A tuple (inputs, targets)</span>
+<span class="sd">            </span>
+<span class="sd">            - A tuple (inputs, targets, sample_weights).</span>
+<span class="sd">            </span>
+<span class="sd">            When validation_data is None, skip validation.</span>
+
+<span class="sd">        callbacks: list of keras callback classes or None.</span>
+<span class="sd">            When callbacks is None, set proper this model&#39;s callbacks.</span>
+<span class="sd">            </span>
+<span class="sd">            Otherwise, set this arg as this model&#39;s callbacks.</span>
+<span class="sd">            </span>
+<span class="sd">        **kwargs: dictionary.</span>
+<span class="sd">            Legal arguments are the arguments of `fit_generator (builded model method)`.</span>
+<span class="sd">                </span>
+<span class="sd">        # Returns</span>
+<span class="sd">        </span>
+<span class="sd">        history: object</span>
+<span class="sd">            details about the training history at each epoch.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">reuse</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_build_model</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ck_callbacks</span><span class="p">(</span><span class="n">validation_data</span><span class="o">=</span><span class="n">validation_data</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="n">callbacks</span><span class="p">)</span>
+        
+        <span class="n">fit_args</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filter_sk_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">fit_generator</span><span class="p">))</span>
+        <span class="n">fit_args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        
+        <span class="n">history</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">fit_generator</span><span class="p">(</span><span class="n">generator</span><span class="p">,</span> <span class="n">steps_per_epoch</span><span class="p">,</span> <span class="n">validation_data</span><span class="o">=</span><span class="n">validation_data</span><span class="p">,</span> 
+                                           <span class="n">callbacks</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">,</span> <span class="o">**</span><span class="n">fit_args</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">history</span>
+    
+    <span class="k">def</span> <span class="nf">predict_generator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">generator</span><span class="p">,</span> <span class="n">steps</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates predictions for the input samples from a data generator.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        generator: generator</span>
+<span class="sd">            The output of the generator must be either </span>
+<span class="sd">            </span>
+<span class="sd">            - a tuple (inputs, targets)</span>
+<span class="sd">            </span>
+<span class="sd">            - a tuple (inputs, targets, sample_weights).</span>
+
+<span class="sd">        steps: int.</span>
+<span class="sd">            Total number of steps (batches of samples).</span>
+
+<span class="sd">        **kwargs: dictionary.</span>
+<span class="sd">            Legal arguments are the arguments of `predict_generator (builded model method)`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        preds: </span>
+<span class="sd">            Predictions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_sk_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict_generator</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict_generator</span><span class="p">(</span><span class="n">generator</span><span class="o">=</span><span class="n">generator</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="n">steps</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">evaluate_generator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">generator</span><span class="p">,</span> <span class="n">steps</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Evaluates the model on a data generator.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        generator: generator</span>
+<span class="sd">            The output of the generator must be either</span>
+<span class="sd">            </span>
+<span class="sd">            - a tuple (inputs, targets)</span>
+<span class="sd">            </span>
+<span class="sd">            - a tuple (inputs, targets, sample_weights).</span>
+
+<span class="sd">        steps: int.</span>
+<span class="sd">            Total number of steps (batches of samples).</span>
+
+<span class="sd">        **kwargs: dictionary.</span>
+<span class="sd">            Legal arguments are the arguments of `predict_generator (builded model method)`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        loss</span>
+<span class="sd">            model&#39;s loss</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_sk_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">evaluate_generator</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">evaluate_generator</span><span class="p">(</span><span class="n">generator</span><span class="o">=</span><span class="n">generator</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="n">steps</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_optimizer</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save a model to a HDF5 file.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        model: </span>
+<span class="sd">            Keras model instance to be saved.</span>
+
+<span class="sd">        filepath: str. </span>
+<span class="sd">            path where to save the model.</span>
+<span class="sd">            </span>
+<span class="sd">        overwrite: bool, default=True.</span>
+<span class="sd">            Whether we should overwrite any existing</span>
+<span class="sd">            model at the target location, or instead</span>
+<span class="sd">            ask the user with a manual prompt.</span>
+<span class="sd">            </span>
+<span class="sd">        include_optimizer: bool, default=True.</span>
+<span class="sd">            If True, save optimizer&#39;s state together.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="n">filepath</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span> <span class="n">include_optimizer</span><span class="o">=</span><span class="n">include_optimizer</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="KerasClassifier"><a class="viewcode-back" href="../../../modules/wrappers/kslearn.wrappers.KerasClassifier.html#kslearn.wrappers.KerasClassifier">[docs]</a><span class="k">class</span> <span class="nc">KerasClassifier</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implementation of the scikit-learn classifier API for Keras.</span>
+
+<span class="sd">    Argments</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    build_fn: callable function or class instance.</span>
+<span class="sd">        The `build_fn` should construct, compile and return a Keras model, which</span>
+<span class="sd">        will then be used to fit/predict. One of the following</span>
+<span class="sd">        three values could be passed to `build_fn`:</span>
+<span class="sd">        </span>
+<span class="sd">        1. A function</span>
+<span class="sd">        </span>
+<span class="sd">        2. An instance of a class that implements the `__call__` method</span>
+<span class="sd">        </span>
+<span class="sd">        3. None. This means you implement a class that inherits from either</span>
+<span class="sd">        `KerasClassifier` or `KerasRegressor`. The `__call__` method of the</span>
+<span class="sd">        present class will then be treated as the default `build_fn`.</span>
+
+<span class="sd">    model_id: str or None, default=None.</span>
+<span class="sd">        This is used to log filename.</span>
+<span class="sd">        </span>
+<span class="sd">        When model_id is None, this is generated by date time.</span>
+
+<span class="sd">    logroot_dir: str or None, default=None.</span>
+<span class="sd">        Log root dir. this model&#39;s logfile is saved under &quot;`logroot_dir`/`model_id`/&quot;.</span>
+<span class="sd">        </span>
+<span class="sd">        When logroot_dir is None, a logfile is not saved.</span>
+
+<span class="sd">    tb_display_url: str or None, default=None.</span>
+<span class="sd">        Tensorboard&#39;s url. When run `fit`, tensorboard and keras model plot is displayed on jupyter.</span>
+<span class="sd">        </span>
+<span class="sd">        When tb_display_url is None, this is not displayed. </span>
+
+<span class="sd">    period: int or None, default=None.</span>
+<span class="sd">        Interval (number of epochs) between checkpoints for save the model (keras.callbacks.ModelCheckpoint&#39;s arg) .</span>
+<span class="sd">        </span>
+<span class="sd">        When period is None, unless proper &#39;callback&#39; argument is given at the time of running &#39;fit&#39;, this model is not saved.</span>
+
+<span class="sd">    patience: int or None, default=None.</span>
+<span class="sd">        Number of epochs with no improvement after which training will be stopped (keras.callbacks.EarlyStopping&#39;s arg).</span>
+<span class="sd">        </span>
+<span class="sd">        When patience is None, unless proper &#39;callback&#39; argument is given at the time of running &#39;fit&#39;, earlystopping is not used. </span>
+
+<span class="sd">    random_state: int or None, default=None.</span>
+<span class="sd">        The seed used by the random number generator.</span>
+<span class="sd">        </span>
+<span class="sd">        (this seed is used in tensorflow, numpy and python random.)</span>
+
+<span class="sd">    reuse: bool, default=True.</span>
+<span class="sd">        When reuse is True, tensorflow session is not initialized per running `fit`.</span>
+
+<span class="sd">    **sk_params: dictonary.</span>
+<span class="sd">        model parameters &amp; fitting parameters.</span>
+<span class="sd">        </span>
+<span class="sd">        `sk_params` takes both model parameters and fitting parameters. </span>
+<span class="sd">        </span>
+<span class="sd">        Legal modelparameters are the arguments of `build_fn`. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_ck_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classes_</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">to_categorical</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">y</span>
+    
+    <span class="k">def</span> <span class="nf">_ck_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">classes_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">classes_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classes_</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid shape for y: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_classes_</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classes_</span><span class="p">)</span>
+                
+<div class="viewcode-block" id="KerasClassifier.fit"><a class="viewcode-back" href="../../../modules/wrappers/kslearn.wrappers.KerasClassifier.html#kslearn.wrappers.KerasClassifier.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">validation_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructs a new model with `build_fn` &amp; fit the model to `(x, y)`.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        x : array-like, shape `(n_samples, n_features)`</span>
+<span class="sd">            Training samples where n_samples in the number of samples</span>
+<span class="sd">            and n_features is the number of features.</span>
+
+<span class="sd">        y : array-like, shape `(n_samples,)` or `(n_samples, n_outputs)`</span>
+<span class="sd">            True values for X.</span>
+
+<span class="sd">        validation_data: tuple of array-like `(x, y)` or None.</span>
+<span class="sd">            Data for validation.</span>
+<span class="sd">            </span>
+<span class="sd">            When validation_data is None, skip validation.</span>
+
+<span class="sd">        callbacks: list of keras callback classes or None.</span>
+<span class="sd">            When callbacks is None, set proper this model&#39;s callbacks.</span>
+<span class="sd">            </span>
+<span class="sd">            Otherwise, set this arg as this model&#39;s callbacks.</span>
+<span class="sd">            </span>
+<span class="sd">        **kwargs: dictionary.</span>
+<span class="sd">            Legal arguments are the arguments of `fit (builded model method)`.</span>
+<span class="sd">                </span>
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        history : object</span>
+<span class="sd">            details about the training history at each epoch.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;n_classes_&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ck_classes</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ck_y</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">validation_data</span><span class="o">=</span><span class="n">validation_data</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="n">callbacks</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="KerasClassifier.predict_proba"><a class="viewcode-back" href="../../../modules/wrappers/kslearn.wrappers.KerasClassifier.html#kslearn.wrappers.KerasClassifier.predict_proba">[docs]</a>    <span class="k">def</span> <span class="nf">predict_proba</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns class probability estimates for the given test data.</span>
+<span class="sd">        </span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        x: array-like, shape `(n_samples, n_features)`</span>
+<span class="sd">            Test samples where n_samples in the number of samples</span>
+<span class="sd">            and n_features is the number of features.</span>
+
+<span class="sd">        **kwargs: dictionary arguments</span>
+<span class="sd">            Legal arguments are the arguments</span>
+<span class="sd">            of `predict (builded model method)`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        proba: array-like, shape `(n_samples, n_outputs)`</span>
+<span class="sd">            Class probability estimates.</span>
+<span class="sd">            In the case of binary classification,</span>
+<span class="sd">            tp match the scikit-learn API,</span>
+<span class="sd">            will return an array of shape &#39;(n_samples, 2)&#39;</span>
+<span class="sd">            (instead of `(n_sample, 1)` as in Keras).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_sk_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
+        <span class="c1"># check if binary classification</span>
+        <span class="k">if</span> <span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># first column is probability of class 0 and second is of class 1</span>
+            <span class="n">probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="mi">1</span> <span class="o">-</span> <span class="n">probs</span><span class="p">,</span> <span class="n">probs</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">probs</span></div>
+        
+<div class="viewcode-block" id="KerasClassifier.predict"><a class="viewcode-back" href="../../../modules/wrappers/kslearn.wrappers.KerasClassifier.html#kslearn.wrappers.KerasClassifier.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the class predictions for the given test data.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        x: array-like, shape `(n_samples, n_features)`</span>
+<span class="sd">            Test samples where n_samples in the number of samples</span>
+<span class="sd">            and n_features is the number of features.</span>
+
+<span class="sd">        **kwargs: dictionary arguments</span>
+<span class="sd">            Legal arguments are the arguments</span>
+<span class="sd">            of `predict (builded model method)`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        preds: array-like, shape `(n_samples,)`</span>
+<span class="sd">            Class predictions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">)</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">classes_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="KerasClassifier.evaluate"><a class="viewcode-back" href="../../../modules/wrappers/kslearn.wrappers.KerasClassifier.html#kslearn.wrappers.KerasClassifier.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retern model&#39;s loss.</span>
+<span class="sd">        </span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        x : array-like, shape `(n_samples, n_features)`</span>
+<span class="sd">            Training samples where n_samples in the number of samples</span>
+<span class="sd">            and n_features is the number of features.</span>
+
+<span class="sd">        y : array-like, shape `(n_samples,)` or `(n_samples, n_outputs)`</span>
+<span class="sd">            True values for X.</span>
+
+<span class="sd">        **kwargs: dictionary.</span>
+<span class="sd">            Legal arguments are the arguments of `evaluate (builded model method)`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        loss</span>
+<span class="sd">            model&#39;s loss</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ck_y</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="KerasClassifier.fit_generator"><a class="viewcode-back" href="../../../modules/wrappers/kslearn.wrappers.KerasClassifier.html#kslearn.wrappers.KerasClassifier.fit_generator">[docs]</a>    <span class="k">def</span> <span class="nf">fit_generator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">generator</span><span class="p">,</span> <span class="n">steps_per_epoch</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">validation_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructs a new model with `build_fn` &amp; fit the model to genarator&#39;s output `(x, y)`.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        generator: generator</span>
+<span class="sd">            The output of the generator must be either</span>
+<span class="sd">            </span>
+<span class="sd">            - a tuple (inputs, targets)</span>
+<span class="sd">            </span>
+<span class="sd">            - a tuple (inputs, targets, sample_weights).</span>
+
+<span class="sd">            Note</span>
+<span class="sd">            This method, unlike `fit`, do not transform y (label to 1hot) .</span>
+
+<span class="sd">        steps_per_epoch: int.</span>
+<span class="sd">            Total number of steps (batches of samples).</span>
+
+<span class="sd">        validation_data: tuple of array-like `(x, y)` or None.</span>
+<span class="sd">            validation_data: This can be either</span>
+<span class="sd">            </span>
+<span class="sd">            - A generator for the validation data</span>
+<span class="sd">            </span>
+<span class="sd">            - A tuple (inputs, targets)</span>
+<span class="sd">            </span>
+<span class="sd">            - A tuple (inputs, targets, sample_weights).</span>
+<span class="sd">            </span>
+<span class="sd">            When validation_data is None, skip validation.</span>
+
+<span class="sd">        callbacks: list of keras callback classes or None.</span>
+<span class="sd">            When callbacks is None, set proper this model&#39;s callbacks.</span>
+<span class="sd">            </span>
+<span class="sd">            Otherwise, set this arg as this model&#39;s callbacks.</span>
+<span class="sd">            </span>
+<span class="sd">        **kwargs: dictionary.</span>
+<span class="sd">            Legal arguments are the arguments of `fit_generator (builded model method)`.</span>
+<span class="sd">                </span>
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        history : object</span>
+<span class="sd">            details about the training history at each epoch.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;n_classes_&quot;</span><span class="p">):</span>
+            <span class="n">classes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">classes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">classes_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">n_classes_</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classes_</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid shape for y: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+            
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">fit_generator</span><span class="p">(</span><span class="n">generator</span><span class="p">,</span> <span class="n">steps_per_epoch</span><span class="p">,</span> <span class="n">validation_data</span><span class="o">=</span><span class="n">validation_data</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="n">callbacks</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+                
+<div class="viewcode-block" id="KerasClassifier.score"><a class="viewcode-back" href="../../../modules/wrappers/kslearn.wrappers.KerasClassifier.html#kslearn.wrappers.KerasClassifier.score">[docs]</a>    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the mean accuracy on the given test data and labels.</span>
+<span class="sd">        </span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        x: array-like, shape `(n_samples, n_features)`</span>
+<span class="sd">            Test samples where n_samples in the number of samples</span>
+<span class="sd">            and n_features is the number of features.</span>
+
+<span class="sd">        y: array-like, sto_categoricalhape `(n_samples,)` or `(n_samples, n_outputs)`</span>
+<span class="sd">            True labels for x.</span>
+
+<span class="sd">        **kwargs: dictionary arguments</span>
+<span class="sd">            Legal arguments are the arguments of `evaluate (builded model method)`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        score: float</span>
+<span class="sd">            Mean accuracy of predictions on X wrt. y.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        ValueError: </span>
+<span class="sd">        	If the underlying model isn&#39;t configured to</span>
+<span class="sd">            compute accuracy. You should pass `metrics=[&quot;accuracy&quot;]` to</span>
+<span class="sd">            the `.compile()` method of the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ck_y</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_sk_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">outputs</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">output</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">metrics_names</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;acc&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">output</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The model is not configured to compute accuracy. &#39;</span>
+                         <span class="s1">&#39;You should pass `metrics=[&quot;accuracy&quot;]` to &#39;</span>
+<span class="s1">&#39;the `model.compile()` method.&#39;</span><span class="p">)</span></div></div>
+        
+
+<div class="viewcode-block" id="KerasRegressor"><a class="viewcode-back" href="../../../modules/wrappers/kslearn.wrappers.KerasRegressor.html#kslearn.wrappers.KerasRegressor">[docs]</a><span class="k">class</span> <span class="nc">KerasRegressor</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implementation of the scikit-learn regressor API for Keras.</span>
+
+<span class="sd">    Argments</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    build_fn: callable function or class instance.</span>
+<span class="sd">        The `build_fn` should construct, compile and return a Keras model, which</span>
+<span class="sd">        will then be used to fit/predict. One of the following</span>
+<span class="sd">        three values could be passed to `build_fn`:</span>
+<span class="sd">        </span>
+<span class="sd">        1. A function</span>
+<span class="sd">        </span>
+<span class="sd">        2. An instance of a class that implements the `__call__` method</span>
+<span class="sd">        </span>
+<span class="sd">        3. None. This means you implement a class that inherits from either</span>
+<span class="sd">        `KerasClassifier` or `KerasRegressor`. The `__call__` method of the</span>
+<span class="sd">        present class will then be treated as the default `build_fn`.</span>
+
+<span class="sd">    model_id: str or None, default=None.</span>
+<span class="sd">        This is used to log filename.</span>
+<span class="sd">        </span>
+<span class="sd">        When model_id is None, this is generated by date time.</span>
+
+<span class="sd">    logroot_dir: str or None, default=None.</span>
+<span class="sd">        Log root dir. this model&#39;s logfile is saved under &quot;`logroot_dir`/`model_id`/&quot;.</span>
+<span class="sd">        </span>
+<span class="sd">        When logroot_dir is None, a logfile is not saved.</span>
+
+<span class="sd">    tb_display_url: str or None, default=None.</span>
+<span class="sd">        Tensorboard&#39;s url. When run `fit`, tensorboard and keras model plot is displayed on jupyter.</span>
+<span class="sd">        </span>
+<span class="sd">        When tb_display_url is None, this is not displayed. </span>
+
+<span class="sd">    period: int or None, default=None.</span>
+<span class="sd">        Interval (number of epochs) between checkpoints for save the model (keras.callbacks.ModelCheckpoint&#39;s arg) .</span>
+<span class="sd">        </span>
+<span class="sd">        When period is None, unless proper &#39;callback&#39; argument is given at the time of running &#39;fit&#39;, this model is not saved.</span>
+
+<span class="sd">    patience: int or None, default=None.</span>
+<span class="sd">        Number of epochs with no improvement after which training will be stopped (keras.callbacks.EarlyStopping&#39;s arg).</span>
+<span class="sd">        </span>
+<span class="sd">        When patience is None, unless proper &#39;callback&#39; argument is given at the time of running &#39;fit&#39;, earlystopping is not used. </span>
+
+<span class="sd">    random_state: int or None, default=None.</span>
+<span class="sd">        The seed used by the random number generator.</span>
+<span class="sd">        </span>
+<span class="sd">        (this seed is used in tensorflow, numpy and python random.)</span>
+
+<span class="sd">    reuse: bool, default=True.</span>
+<span class="sd">        When reuse is True, tensorflow session is not initialized per running `fit`.</span>
+
+<span class="sd">    **sk_params: dictonary.</span>
+<span class="sd">        model parameters &amp; fitting parameters.</span>
+<span class="sd">        </span>
+<span class="sd">        `sk_params` takes both model parameters and fitting parameters. </span>
+<span class="sd">        </span>
+<span class="sd">        Legal modelparameters are the arguments of `build_fn`. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="KerasRegressor.predict"><a class="viewcode-back" href="../../../modules/wrappers/kslearn.wrappers.KerasRegressor.html#kslearn.wrappers.KerasRegressor.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns predictions for the given test data.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        x: array-like, shape `(n_samples, n_features)`</span>
+<span class="sd">            Test samples where n_samples in the number of samples</span>
+<span class="sd">            and n_features is the number of features.</span>
+
+<span class="sd">        **kwargs: dictionary arguments</span>
+<span class="sd">            Legal arguments are the arguments of `predict (builded model method)`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        preds: array-like, shape `(n_samples,)`</span>
+<span class="sd">            Predictions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_sk_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="KerasRegressor.score"><a class="viewcode-back" href="../../../modules/wrappers/kslearn.wrappers.KerasRegressor.html#kslearn.wrappers.KerasRegressor.score">[docs]</a>    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the mean loss on the given test data and labels.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        x: array-like, shape `(n_samples, n_features)`</span>
+<span class="sd">            Test samples where n_samples in the number of samples</span>
+<span class="sd">            and n_features is the number of features.</span>
+<span class="sd">            </span>
+<span class="sd">        y: array-like, shape `(n_samples,)`</span>
+<span class="sd">            True labels for X.</span>
+<span class="sd">            </span>
+<span class="sd">        **kwargs: dictionary arguments</span>
+<span class="sd">            Legal arguments are the arguments of `evaluate (builded model method)`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        score: float</span>
+<span class="sd">            Mean accuracy of predictions on X wrt. y.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_sk_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="o">-</span><span class="n">loss</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">loss</span></div></div>
+    
+
+<div class="viewcode-block" id="KerasModel"><a class="viewcode-back" href="../../../modules/wrappers/kslearn.wrappers.KerasModel.html#kslearn.wrappers.KerasModel">[docs]</a><span class="k">class</span> <span class="nc">KerasModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implementation of the scikit-learn API for Keras.</span>
+
+<span class="sd">    Argments</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    build_fn: callable function or class instance.</span>
+<span class="sd">        The `build_fn` should construct, compile and return a Keras model, which</span>
+<span class="sd">        will then be used to fit/predict. One of the following</span>
+<span class="sd">        three values could be passed to `build_fn`:</span>
+<span class="sd">        </span>
+<span class="sd">        1. A function</span>
+<span class="sd">        </span>
+<span class="sd">        2. An instance of a class that implements the `__call__` method</span>
+<span class="sd">        </span>
+<span class="sd">        3. None. This means you implement a class that inherits from either</span>
+<span class="sd">        </span>
+<span class="sd">        `KerasClassifier` or `KerasRegressor`. The `__call__` method of the</span>
+<span class="sd">        present class will then be treated as the default `build_fn`.</span>
+
+<span class="sd">    model_id: str or None, default=None.</span>
+<span class="sd">        This is used to log filename.</span>
+<span class="sd">        </span>
+<span class="sd">        When model_id is None, this is generated by date time.</span>
+
+<span class="sd">    logroot_dir: str or None, default=None.</span>
+<span class="sd">        Log root dir. this model&#39;s logfile is saved under &quot;`logroot_dir`/`model_id`/&quot;.</span>
+<span class="sd">        </span>
+<span class="sd">        When logroot_dir is None, a logfile is not saved.</span>
+
+<span class="sd">    tb_display_url: str or None, default=None.</span>
+<span class="sd">        Tensorboard&#39;s url. When run `fit`, tensorboard and keras model plot is displayed on jupyter.</span>
+<span class="sd">        </span>
+<span class="sd">        When tb_display_url is None, this is not displayed. </span>
+
+<span class="sd">    period: int or None, default=None.</span>
+<span class="sd">        Interval (number of epochs) between checkpoints for save the model (keras.callbacks.ModelCheckpoint&#39;s arg) .</span>
+<span class="sd">        </span>
+<span class="sd">        When period is None, unless proper &#39;callback&#39; argument is given at the time of running &#39;fit&#39;, this model is not saved.</span>
+
+<span class="sd">    patience: int or None, default=None.</span>
+<span class="sd">        Number of epochs with no improvement after which training will be stopped (keras.callbacks.EarlyStopping&#39;s arg).</span>
+<span class="sd">        </span>
+<span class="sd">        When patience is None, unless proper &#39;callback&#39; argument is given at the time of running &#39;fit&#39;, earlystopping is not used. </span>
+
+<span class="sd">    random_state: int or None, default=None.</span>
+<span class="sd">        The seed used by the random number generator.</span>
+<span class="sd">        </span>
+<span class="sd">        (this seed is used in tensorflow, numpy and python random.)</span>
+
+<span class="sd">    greater_is_better: bool, default=True.</span>
+<span class="sd">        Whether score_func is a score function (default), meaning high is good, </span>
+<span class="sd">        or a loss function, meaning low is good.</span>
+
+<span class="sd">    reuse: bool, default=True.</span>
+<span class="sd">        When reuse is True, tensorflow session is not initialized per running `fit`.</span>
+
+<span class="sd">    **sk_params: dictonary.</span>
+<span class="sd">        model parameters &amp; fitting parameters.</span>
+<span class="sd">        `sk_params` takes both model parameters and fitting parameters. </span>
+<span class="sd">        </span>
+<span class="sd">        Legal modelparameters are the arguments of `build_fn`. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">build_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">model_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logroot_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">period</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">patience</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">reuse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">greater_is_better</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">sk_params</span><span class="p">):</span>
+        <span class="c1"># TODO: review method of inputting `greater_is_better`.</span>
+        <span class="c1"># `greater_is_better` is used in score method and score method is needed to sklearn&#39;s search class.</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">build_fn</span><span class="o">=</span><span class="n">build_fn</span><span class="p">,</span> 
+                         <span class="n">model_id</span><span class="o">=</span><span class="n">model_id</span><span class="p">,</span> <span class="n">logroot_dir</span><span class="o">=</span><span class="n">logroot_dir</span><span class="p">,</span> <span class="n">period</span><span class="o">=</span><span class="n">period</span><span class="p">,</span> <span class="n">patience</span><span class="o">=</span><span class="n">patience</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span> 
+                         <span class="n">reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">,</span> <span class="o">**</span><span class="n">sk_params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">greater_is_better</span> <span class="o">=</span>  <span class="n">greater_is_better</span>
+        
+<div class="viewcode-block" id="KerasModel.predict"><a class="viewcode-back" href="../../../modules/wrappers/kslearn.wrappers.KerasModel.html#kslearn.wrappers.KerasModel.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns predictions for the given test data.</span>
+<span class="sd">        </span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        x: array-like, shape `(n_samples, n_features)`</span>
+<span class="sd">            Test samples where n_samples in the number of samples</span>
+<span class="sd">            and n_features is the number of features.</span>
+<span class="sd">            </span>
+<span class="sd">        **kwargs: dictionary arguments</span>
+<span class="sd">            Legal arguments are the arguments of `predict (builded model method)`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        preds: array-like, shape `(n_samples,)`</span>
+<span class="sd">            Predictions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_sk_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="KerasModel.score"><a class="viewcode-back" href="../../../modules/wrappers/kslearn.wrappers.KerasModel.html#kslearn.wrappers.KerasModel.score">[docs]</a>    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the mean loss on the given test data and labels.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        x: array-like, shape `(n_samples, n_features)`</span>
+<span class="sd">            Test samples where n_samples in the number of samples</span>
+<span class="sd">            and n_features is the number of features.</span>
+<span class="sd">            </span>
+<span class="sd">        y: array-like, shape `(n_samples,)`</span>
+<span class="sd">            True labels for X.</span>
+<span class="sd">            </span>
+<span class="sd">        **kwargs: dictionary arguments</span>
+<span class="sd">            Legal arguments are the arguments of `Sequential.evaluate`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        score</span>
+<span class="sd">            the mean loss on the given test data and labels.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_sk_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">greater_is_better</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">loss</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">loss</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">loss</span></div></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, gen/5.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

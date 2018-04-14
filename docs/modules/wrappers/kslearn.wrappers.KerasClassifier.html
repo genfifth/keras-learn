@@ -1,0 +1,628 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>kslearn.wrappers.KerasClassifier &mdash; keras-learn  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="keras-learn  documentation" href="../../index.html"/>
+        <link rel="up" title="kslearn.wrappers" href="../kslearn.wrappers.html"/>
+        <link rel="next" title="kslearn.wrappers.KerasModel" href="kslearn.wrappers.KerasModel.html"/>
+        <link rel="prev" title="kslearn.wrappers" href="../kslearn.wrappers.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> keras-learn
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../kslearn.utils.html">kslearn.utils</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../kslearn.wrappers.html">kslearn.wrappers</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">kslearn.wrappers.KerasClassifier</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kslearn.wrappers.KerasModel.html">kslearn.wrappers.KerasModel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kslearn.wrappers.KerasRegressor.html">kslearn.wrappers.KerasRegressor</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">keras-learn</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../kslearn.wrappers.html">kslearn.wrappers</a> &raquo;</li>
+        
+      <li>kslearn.wrappers.KerasClassifier</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/modules/wrappers/kslearn.wrappers.KerasClassifier.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="kslearn-wrappers-kerasclassifier">
+<h1>kslearn.wrappers.KerasClassifier<a class="headerlink" href="#kslearn-wrappers-kerasclassifier" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="kslearn.wrappers.KerasClassifier">
+<em class="property">class </em><code class="descname">KerasClassifier</code><span class="sig-paren">(</span><em>build_fn=None</em>, <em>model_id=None</em>, <em>logroot_dir=None</em>, <em>tb_display_url=None</em>, <em>period=None</em>, <em>patience=None</em>, <em>random_state=None</em>, <em>reuse=True</em>, <em>**sk_params</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/kslearn/wrappers/_base.html#KerasClassifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kslearn.wrappers.KerasClassifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implementation of the scikit-learn classifier API for Keras.</p>
+<dl class="docutils">
+<dt>build_fn: callable function or class instance.</dt>
+<dd><p class="first">The <cite>build_fn</cite> should construct, compile and return a Keras model, which
+will then be used to fit/predict. One of the following
+three values could be passed to <cite>build_fn</cite>:</p>
+<ol class="arabic simple">
+<li>A function</li>
+<li>An instance of a class that implements the <cite>__call__</cite> method</li>
+</ol>
+<p class="last">3. None. This means you implement a class that inherits from either
+<cite>KerasClassifier</cite> or <cite>KerasRegressor</cite>. The <cite>__call__</cite> method of the
+present class will then be treated as the default <cite>build_fn</cite>.</p>
+</dd>
+<dt>model_id: str or None, default=None.</dt>
+<dd><p class="first">This is used to log filename.</p>
+<p class="last">When model_id is None, this is generated by date time.</p>
+</dd>
+<dt>logroot_dir: str or None, default=None.</dt>
+<dd><p class="first">Log root dir. this model’s logfile is saved under “<cite>logroot_dir</cite>/<cite>model_id</cite>/”.</p>
+<p class="last">When logroot_dir is None, a logfile is not saved.</p>
+</dd>
+<dt>tb_display_url: str or None, default=None.</dt>
+<dd><p class="first">Tensorboard’s url. When run <cite>fit</cite>, tensorboard and keras model plot is displayed on jupyter.</p>
+<p class="last">When tb_display_url is None, this is not displayed.</p>
+</dd>
+<dt>period: int or None, default=None.</dt>
+<dd><p class="first">Interval (number of epochs) between checkpoints for save the model (keras.callbacks.ModelCheckpoint’s arg) .</p>
+<p class="last">When period is None, unless proper ‘callback’ argument is given at the time of running ‘fit’, this model is not saved.</p>
+</dd>
+<dt>patience: int or None, default=None.</dt>
+<dd><p class="first">Number of epochs with no improvement after which training will be stopped (keras.callbacks.EarlyStopping’s arg).</p>
+<p class="last">When patience is None, unless proper ‘callback’ argument is given at the time of running ‘fit’, earlystopping is not used.</p>
+</dd>
+<dt>random_state: int or None, default=None.</dt>
+<dd><p class="first">The seed used by the random number generator.</p>
+<p class="last">(this seed is used in tensorflow, numpy and python random.)</p>
+</dd>
+<dt>reuse: bool, default=True.</dt>
+<dd>When reuse is True, tensorflow session is not initialized per running <cite>fit</cite>.</dd>
+<dt><a href="#id1"><span class="problematic" id="id2">**</span></a>sk_params: dictonary.</dt>
+<dd><p class="first">model parameters &amp; fitting parameters.</p>
+<p><cite>sk_params</cite> takes both model parameters and fitting parameters.</p>
+<p class="last">Legal modelparameters are the arguments of <cite>build_fn</cite>.</p>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">__init__</span></code>([build_fn,&nbsp;model_id,&nbsp;logroot_dir,&nbsp;…])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">check_params</span></code>(params)</td>
+<td>Checks for user typos in “params”.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#kslearn.wrappers.KerasClassifier.evaluate" title="kslearn.wrappers.KerasClassifier.evaluate"><code class="xref py py-obj docutils literal"><span class="pre">evaluate</span></code></a>(x,&nbsp;y,&nbsp;**kwargs)</td>
+<td>Retern model’s loss.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#kslearn.wrappers.KerasClassifier.evaluate_generator" title="kslearn.wrappers.KerasClassifier.evaluate_generator"><code class="xref py py-obj docutils literal"><span class="pre">evaluate_generator</span></code></a>(generator,&nbsp;steps,&nbsp;**kwargs)</td>
+<td>Evaluates the model on a data generator.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">filter_sk_params</span></code>(fn[,&nbsp;override])</td>
+<td>Filters <cite>sk_params</cite> and returns those in <cite>fn</cite>’s arguments.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#kslearn.wrappers.KerasClassifier.fit" title="kslearn.wrappers.KerasClassifier.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(x,&nbsp;y[,&nbsp;validation_data,&nbsp;callbacks])</td>
+<td>Constructs a new model with <cite>build_fn</cite> &amp; fit the model to <cite>(x, y)</cite>.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#kslearn.wrappers.KerasClassifier.fit_generator" title="kslearn.wrappers.KerasClassifier.fit_generator"><code class="xref py py-obj docutils literal"><span class="pre">fit_generator</span></code></a>(generator,&nbsp;steps_per_epoch,&nbsp;…)</td>
+<td>Constructs a new model with <cite>build_fn</cite> &amp; fit the model to genarator’s output <cite>(x, y)</cite>.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>(**params)</td>
+<td>Gets parameters for this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#kslearn.wrappers.KerasClassifier.predict" title="kslearn.wrappers.KerasClassifier.predict"><code class="xref py py-obj docutils literal"><span class="pre">predict</span></code></a>(x,&nbsp;**kwargs)</td>
+<td>Returns the class predictions for the given test data.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#kslearn.wrappers.KerasClassifier.predict_generator" title="kslearn.wrappers.KerasClassifier.predict_generator"><code class="xref py py-obj docutils literal"><span class="pre">predict_generator</span></code></a>(generator,&nbsp;steps,&nbsp;**kwargs)</td>
+<td>Generates predictions for the input samples from a data generator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#kslearn.wrappers.KerasClassifier.predict_proba" title="kslearn.wrappers.KerasClassifier.predict_proba"><code class="xref py py-obj docutils literal"><span class="pre">predict_proba</span></code></a>(x,&nbsp;**kwargs)</td>
+<td>Returns class probability estimates for the given test data.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#kslearn.wrappers.KerasClassifier.save" title="kslearn.wrappers.KerasClassifier.save"><code class="xref py py-obj docutils literal"><span class="pre">save</span></code></a>(filepath[,&nbsp;overwrite,&nbsp;include_optimizer])</td>
+<td>Save a model to a HDF5 file.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#kslearn.wrappers.KerasClassifier.score" title="kslearn.wrappers.KerasClassifier.score"><code class="xref py py-obj docutils literal"><span class="pre">score</span></code></a>(x,&nbsp;y,&nbsp;**kwargs)</td>
+<td>Returns the mean accuracy on the given test data and labels.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
+<td>Sets the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#kslearn.wrappers.KerasClassifier.set_session_config" title="kslearn.wrappers.KerasClassifier.set_session_config"><code class="xref py py-obj docutils literal"><span class="pre">set_session_config</span></code></a>(config)</td>
+<td>Set tensorfow session config.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="kslearn.wrappers.KerasClassifier.evaluate">
+<code class="descname">evaluate</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/kslearn/wrappers/_base.html#KerasClassifier.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kslearn.wrappers.KerasClassifier.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retern model’s loss.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (array-like, shape <cite>(n_samples, n_features)</cite>) – Training samples where n_samples in the number of samples
+and n_features is the number of features.</li>
+<li><strong>y</strong> (array-like, shape <cite>(n_samples,)</cite> or <cite>(n_samples, n_outputs)</cite>) – True values for X.</li>
+<li><strong>**kwargs</strong> (<em>dictionary.</em>) – Legal arguments are the arguments of <cite>evaluate (builded model method)</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">model’s loss</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">loss</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kslearn.wrappers.KerasClassifier.evaluate_generator">
+<code class="descname">evaluate_generator</code><span class="sig-paren">(</span><em>generator</em>, <em>steps</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#kslearn.wrappers.KerasClassifier.evaluate_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluates the model on a data generator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>generator</strong> (<em>generator</em>) – <p>The output of the generator must be either</p>
+<ul>
+<li>a tuple (inputs, targets)</li>
+<li>a tuple (inputs, targets, sample_weights).</li>
+</ul>
+</li>
+<li><strong>steps</strong> (<em>int.</em>) – Total number of steps (batches of samples).</li>
+<li><strong>**kwargs</strong> (<em>dictionary.</em>) – Legal arguments are the arguments of <cite>predict_generator (builded model method)</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">model’s loss</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">loss</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kslearn.wrappers.KerasClassifier.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>validation_data=None</em>, <em>callbacks=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/kslearn/wrappers/_base.html#KerasClassifier.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kslearn.wrappers.KerasClassifier.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs a new model with <cite>build_fn</cite> &amp; fit the model to <cite>(x, y)</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (array-like, shape <cite>(n_samples, n_features)</cite>) – Training samples where n_samples in the number of samples
+and n_features is the number of features.</li>
+<li><strong>y</strong> (array-like, shape <cite>(n_samples,)</cite> or <cite>(n_samples, n_outputs)</cite>) – True values for X.</li>
+<li><strong>validation_data</strong> (tuple of array-like <cite>(x, y)</cite> or None.) – <p>Data for validation.</p>
+<p>When validation_data is None, skip validation.</p>
+</li>
+<li><strong>callbacks</strong> (<em>list of keras callback classes</em><em> or </em><em>None.</em>) – <p>When callbacks is None, set proper this model’s callbacks.</p>
+<p>Otherwise, set this arg as this model’s callbacks.</p>
+</li>
+<li><strong>**kwargs</strong> (<em>dictionary.</em>) – Legal arguments are the arguments of <cite>fit (builded model method)</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>history</strong> – details about the training history at each epoch.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kslearn.wrappers.KerasClassifier.fit_generator">
+<code class="descname">fit_generator</code><span class="sig-paren">(</span><em>generator</em>, <em>steps_per_epoch</em>, <em>classes</em>, <em>validation_data=None</em>, <em>callbacks=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/kslearn/wrappers/_base.html#KerasClassifier.fit_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kslearn.wrappers.KerasClassifier.fit_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs a new model with <cite>build_fn</cite> &amp; fit the model to genarator’s output <cite>(x, y)</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>generator</strong> (<em>generator</em>) – <p>The output of the generator must be either</p>
+<ul>
+<li>a tuple (inputs, targets)</li>
+<li>a tuple (inputs, targets, sample_weights).</li>
+</ul>
+<p>Note
+This method, unlike <cite>fit</cite>, do not transform y (label to 1hot) .</p>
+</li>
+<li><strong>steps_per_epoch</strong> (<em>int.</em>) – Total number of steps (batches of samples).</li>
+<li><strong>validation_data</strong> (tuple of array-like <cite>(x, y)</cite> or None.) – <p>validation_data: This can be either</p>
+<ul>
+<li>A generator for the validation data</li>
+<li>A tuple (inputs, targets)</li>
+<li>A tuple (inputs, targets, sample_weights).</li>
+</ul>
+<p>When validation_data is None, skip validation.</p>
+</li>
+<li><strong>callbacks</strong> (<em>list of keras callback classes</em><em> or </em><em>None.</em>) – <p>When callbacks is None, set proper this model’s callbacks.</p>
+<p>Otherwise, set this arg as this model’s callbacks.</p>
+</li>
+<li><strong>**kwargs</strong> (<em>dictionary.</em>) – Legal arguments are the arguments of <cite>fit_generator (builded model method)</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>history</strong> – details about the training history at each epoch.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kslearn.wrappers.KerasClassifier.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>x</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/kslearn/wrappers/_base.html#KerasClassifier.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kslearn.wrappers.KerasClassifier.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the class predictions for the given test data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (array-like, shape <cite>(n_samples, n_features)</cite>) – Test samples where n_samples in the number of samples
+and n_features is the number of features.</li>
+<li><strong>**kwargs</strong> (<em>dictionary arguments</em>) – Legal arguments are the arguments
+of <cite>predict (builded model method)</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>preds</strong> – Class predictions.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">array-like, shape <cite>(n_samples,)</cite></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kslearn.wrappers.KerasClassifier.predict_generator">
+<code class="descname">predict_generator</code><span class="sig-paren">(</span><em>generator</em>, <em>steps</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#kslearn.wrappers.KerasClassifier.predict_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates predictions for the input samples from a data generator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>generator</strong> (<em>generator</em>) – <p>The output of the generator must be either</p>
+<ul>
+<li>a tuple (inputs, targets)</li>
+<li>a tuple (inputs, targets, sample_weights).</li>
+</ul>
+</li>
+<li><strong>steps</strong> (<em>int.</em>) – Total number of steps (batches of samples).</li>
+<li><strong>**kwargs</strong> (<em>dictionary.</em>) – Legal arguments are the arguments of <cite>predict_generator (builded model method)</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Predictions.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">preds</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kslearn.wrappers.KerasClassifier.predict_proba">
+<code class="descname">predict_proba</code><span class="sig-paren">(</span><em>x</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/kslearn/wrappers/_base.html#KerasClassifier.predict_proba"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kslearn.wrappers.KerasClassifier.predict_proba" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns class probability estimates for the given test data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (array-like, shape <cite>(n_samples, n_features)</cite>) – Test samples where n_samples in the number of samples
+and n_features is the number of features.</li>
+<li><strong>**kwargs</strong> (<em>dictionary arguments</em>) – Legal arguments are the arguments
+of <cite>predict (builded model method)</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>proba</strong> – Class probability estimates.
+In the case of binary classification,
+tp match the scikit-learn API,
+will return an array of shape ‘(n_samples, 2)’
+(instead of <cite>(n_sample, 1)</cite> as in Keras).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">array-like, shape <cite>(n_samples, n_outputs)</cite></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kslearn.wrappers.KerasClassifier.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>filepath</em>, <em>overwrite=True</em>, <em>include_optimizer=True</em><span class="sig-paren">)</span><a class="headerlink" href="#kslearn.wrappers.KerasClassifier.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a model to a HDF5 file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>model</strong> – Keras model instance to be saved.</li>
+<li><strong>filepath</strong> (<em>str.</em>) – path where to save the model.</li>
+<li><strong>overwrite</strong> (<em>bool</em><em>, </em><em>default=True.</em>) – Whether we should overwrite any existing
+model at the target location, or instead
+ask the user with a manual prompt.</li>
+<li><strong>include_optimizer</strong> (<em>bool</em><em>, </em><em>default=True.</em>) – If True, save optimizer’s state together.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kslearn.wrappers.KerasClassifier.score">
+<code class="descname">score</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/kslearn/wrappers/_base.html#KerasClassifier.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kslearn.wrappers.KerasClassifier.score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the mean accuracy on the given test data and labels.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (array-like, shape <cite>(n_samples, n_features)</cite>) – Test samples where n_samples in the number of samples
+and n_features is the number of features.</li>
+<li><strong>y</strong> (array-like, sto_categoricalhape <cite>(n_samples,)</cite> or <cite>(n_samples, n_outputs)</cite>) – True labels for x.</li>
+<li><strong>**kwargs</strong> (<em>dictionary arguments</em>) – Legal arguments are the arguments of <cite>evaluate (builded model method)</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>score</strong> – Mean accuracy of predictions on X wrt. y.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">float</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">ValueError: –     If the underlying model isn’t configured to
+compute accuracy. You should pass <cite>metrics=[“accuracy”]</cite> to
+the <cite>.compile()</cite> method of the model.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kslearn.wrappers.KerasClassifier.set_session_config">
+<code class="descname">set_session_config</code><span class="sig-paren">(</span><em>config</em><span class="sig-paren">)</span><a class="headerlink" href="#kslearn.wrappers.KerasClassifier.set_session_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set tensorfow session config.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>config</strong> – config for tensorflow session.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="kslearn.wrappers.KerasModel.html" class="btn btn-neutral float-right" title="kslearn.wrappers.KerasModel" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../kslearn.wrappers.html" class="btn btn-neutral" title="kslearn.wrappers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, gen/5.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

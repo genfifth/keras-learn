@@ -16,4 +16,4 @@ $ pip install git+https://github.com/genfifth/keras-learn
 [notebook](https://github.com/genfifth/keras-learn/blob/master/notebooks/quickstart.ipynb) 
 
 # Documents
-[API reference](https://genfifth.github.io/keras-learn/)
+[API Reference](https://genfifth.github.io/keras-learn/)

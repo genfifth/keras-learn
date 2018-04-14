@@ -7,7 +7,9 @@ def display_log(path, tb_display_url, cr_model_id=None):
     """
     Display kslearn's model log on jupyter.
 
-    # Arguments
+    Arguments
+    ----------
+
     path: str
         kslearn's model log dir.
     tb_display_url: str
@@ -16,7 +18,8 @@ def display_log(path, tb_display_url, cr_model_id=None):
         Default displayed model's id in SimpleGraphPlot.
         When cr_model_id is None, first model which is found by os.listdir is displayed.
         
-    # Note
+    Note
+    ----------
     The port included in the path may be different from tensorboard's listen port.
     So, didn't extract port number from this url and run tensorboard.
     """

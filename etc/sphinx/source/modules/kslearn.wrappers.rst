@@ -2,9 +2,12 @@ kslearn\.wrappers
 =========================
 
 .. automodule:: kslearn.wrappers
-    :exclude-members: check_params, filter_sk_params
-    :inherited-members:
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    ::
 
+.. autosummary::
+   :toctree: wrappers
+
+   :template: mytemplate.rst
+   kslearn.wrappers.KerasClassifier
+   kslearn.wrappers.KerasModel
+   kslearn.wrappers.KerasRegressor
